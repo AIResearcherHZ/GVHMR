@@ -1,0 +1,3 @@
+ python tools/demo/demo.py --video=docs/example_video/tennis.mp4 -s
+
+python tools/demo/demo.py --video=docs/example_video/kuli.mp4 -s
