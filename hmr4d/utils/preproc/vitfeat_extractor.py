@@ -75,15 +75,18 @@ class Extractor:
 
         # Inference
         F, _, H, W = imgs.shape  # (F, 3, H, W)
-        imgs = imgs.cuda()
+        # 不要一次性把所有图像加载到GPU，分批处理以节省显存
         batch_size = 16  # 5GB GPU memory, occupies all CUDA cores of 3090
         features = []
         for j in tqdm(range(0, F, batch_size), desc="HMR2 Feature", leave=self.tqdm_leave):
-            imgs_batch = imgs[j : j + batch_size]
+            imgs_batch = imgs[j : j + batch_size].cuda()  # 只把当前batch移到GPU
 
             with torch.no_grad():
                 feature = self.extractor({"img": imgs_batch})
                 features.append(feature.detach().cpu())
+            
+            del imgs_batch  # 释放GPU显存
+            torch.cuda.empty_cache()
 
         features = torch.cat(features, dim=0).clone()  # (F, 1024)
         return features
